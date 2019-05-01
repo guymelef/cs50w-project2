@@ -4,22 +4,56 @@ document.addEventListener("DOMContentLoaded", () => {
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
 
-    // Hide room creation div by default
+    socket.on('connect', () => { console.log("SUCCESS!") });
+
+    // Hide some elements by default
     document.querySelector(".create-room").style.display = "none";
     document.querySelector("#room-created").style.display = "none";
+    document.querySelector("#not-welcome").style.display = "none";
 
     if (!localStorage.getItem("user")) {
         document.querySelector(".modal").style.display = "block";
+        let username;
 
         document.querySelector("#new-user").onsubmit = () => {
-            const username = document.querySelector("#username").value;
-            localStorage.setItem("user", username);
-            document.querySelector(".modal").style.display = "none";
-            document.querySelector("#welcome").innerHTML = `O hai, <u>${username}</u>!`;
-            return false;            
+            username = document.querySelector("#username").value;
+
+            // Create AJAX request, check username with server
+            const request = new XMLHttpRequest();
+            request.open("POST", "/login");
+
+            // When request completes
+            request.onload = () => {
+
+                // Extract JSON
+                const data = JSON.parse(request.responseText);
+
+                // Check if username is accepted
+                if (data.success) {
+                    localStorage.setItem("user", username);
+                    document.querySelector(".modal").style.display = "none";
+                    document.querySelector("#welcome").innerHTML = `O hai, <u>${username}</u>!`;
+                    return false;
+                } else {
+                    document.querySelector("#not-welcome").style.display = "block";
+                    setTimeout(() => {
+                        document.querySelector("#not-welcome").style.display = "none";
+                    }, 2000);
+                }
+            }
+
+            // Add data to send with request
+            const data = new FormData();
+            data.append("username", username);
+
+            // Send request
+            request.send(data);
+            return false;      
         }
     } else {
+        // 
         document.querySelector("#welcome").innerHTML = `O hai, <u>${localStorage.getItem("user")}</u>!`;
+
     }
 
     // Disable chat button by default

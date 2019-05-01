@@ -32,8 +32,10 @@
 			<div class="modal-body">
 				<p>To commence chat, enter your display name:</p>
 				<form id="new-user">
-					<input type="text" name="username" autocomplete="off" maxlength="12" pattern="[A-Za-z0-9]+" id="username" required>
+					<input type="text" name="username" autocomplete="off" autofocus maxlength="12" pattern="[A-Za-z0-9]+" id="username" required>
 					<input type="submit" name="go" value="Go" id="submit-id">
+					<br>
+					<span id="not-welcome">Oops, that username is taken.</span>
 				</form>
 			</div>
 		</div>

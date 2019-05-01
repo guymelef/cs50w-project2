@@ -61,6 +61,12 @@ nav > a {
 	to {top:0; opacity: 1}
 }
 
+#not-welcome {
+	font-size: 0.75em;
+	color: red;
+	font-weight: bold;
+}
+
 .grid-container {
 	display: grid;
 	justify-content: center;
