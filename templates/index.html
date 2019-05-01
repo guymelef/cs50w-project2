@@ -1,114 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<!-- Normalize -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
-	<script type="text/javascript" src="{{url_for('static', filename='index.js')}}"></script>
-	
+	<!-- scripts -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.1.2/handlebars.min.js"></script>
+
 	<!-- fonts -->
 	<link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Quantico" rel="stylesheet">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="C:\Users\Jerson\CS50W Projects\project2\static\index.css">
-
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='index.css')}}">
+	<link rel="icon" href="{{ url_for('static', filename='robot-solid.svg') }}" sizes="16x16" type="image/svg+xml">
+	<link rel="icon" href="{{url_for('static', filename='favicon.ico')}}" type="image/x-icon">
+	
 	<title>Flack</title>
 </head>
 <body>
+	<nav>
+		<a href="{{url_for('index')}}">// FLACK<span id="blink">_</span></a>
+	</nav>
 
-	<h1>// <u>FLACK</u>	</h1>
-
-	<!-- Prompt user for display name -->
-	<div class="wrapper">
-		<div id="user-prompt">
-			<p>To commence chat, create a display name:</p>
-			<form>
-				<input type="text" name="username" size="31" maxlength="12" pattern="[A-Za-z0-9]+" required>
-				<input type="submit" name="go" value="Go">
-			</form>
+	<!-- Modal to prompt user for username -->
+	<div class="modal">
+		<div class="modal-content">
+			<div class="modal-body">
+				<p>To commence chat, enter your display name:</p>
+				<form id="new-user">
+					<input type="text" name="username" autocomplete="off" maxlength="12" pattern="[A-Za-z0-9]+" id="username" required>
+					<input type="submit" name="go" value="Go" id="submit-id">
+				</form>
+			</div>
 		</div>
 	</div>
 
 	<!-- Chat area -->
 	<div class="grid-container">
-		<div>
-			<div id="chat-box">
-				<div class="chat-messages">
-					<div class="box box1">
-						<img src="C:\Users\Jerson\CS50W Projects\project2\static\robot-solid.svg">
-					</div>
-					<div class="box box2">
-						<strong class="username">Nick</strong> <span class="timestamp">Today at 12:45 AM</span>
-						<br>
-						Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-						tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-						quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-						consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-						cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-						proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-					</div>
-					<hr>
-				</div>
-				<div class="chat-messages">
-					<div class="box box1">
-						<img src="C:\Users\Jerson\CS50W Projects\project2\static\robot-solid.svg">
-					</div>
-					<div class="box box2">
-						<strong class="username">Nick</strong> <span class="timestamp">Today at 12:45 AM</span>
-						<br>
-						Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-						tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-						quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-						consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-						cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-						proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-					</div>
-					<hr>
-				</div>
-				<div class="chat-messages">
-					<div class="box box1">
-						<img src="C:\Users\Jerson\CS50W Projects\project2\static\robot-solid.svg">
-					</div>
-					<div class="box box2">
-						<strong class="username">Nick</strong> <span class="timestamp">Today at 12:45 AM</span>
-						<br>
-						Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-						tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-						quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-						consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-						cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-						proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-					</div>
-					<hr>
-				</div>
-				<div class="chat-messages">
-					<div class="box box1">
-						<img src="C:\Users\Jerson\CS50W Projects\project2\static\robot-solid.svg">
-					</div>
-					<div class="box box2">
-						<strong class="username">Nick</strong> <span class="timestamp">Today at 12:45 AM</span>
-						<br>
-						Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-						tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-						quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-						consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-						cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-						proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-					</div>
-				</div>
+		<div class="grid1">
+			<div id="chat-box">			
 			</div>
 			<form id="new-message">
 				<input id="chat-message" type="text" autocomplete="off" size="43" autofocus placeholder="Send a message">
 				<input id="submit-chat" type="submit" value="Chat">
 			</form>
 		</div>
-		<div>
+		<div class="grid2">
 			<div id="navigation">
-				<h3>O hai, <strong>user</strong>!</h3>
+				<h3><span id="welcome">Welcome to Flack!</span></h3>
 
 				<p>Join another room or create one.</p>
 				<span><strong>Current room</strong></span>:
@@ -117,18 +60,39 @@
 						<option value="general"># general</option>
 					</optgroup>
 				</select>
-				<input type="button" name="add-room" value="+">
-
+				<input type="button" id="add-room" value="&#43;">
+				<br>
+				<span id="room-created"><strong>* New room created!</strong></span>
 				<!-- Create a new room -->
-				<div id="create-room">
-					<form>
-						<p>Type a unique room name:</p>
+				<div class="create-room">
+					<form id="create-room">
+						<p>Type a unique room name:
+							<br>
+							<span style="font-size: 0.7rem;"><em>Max. 12 chararacters, no spaces.</em></span>
+						</p>
 						<input type="text" name="new-room" id="new-room" maxlength="12" pattern="[A-Za-z0-9]+" required>
-						<input type="submit" name="submit-room" value="OK">
+						<input type="submit" id="submit-room" value="OK">
 					</form>
 				</div>
 			</div>
 		</div>
 	</div>
+
+
+
+	<script id="message" type="text/template">
+		<div class="chat-messages">
+			<div class="box box1">
+				<img src="{{url_for('static', filename='robot-solid.svg')}}">
+			</div>
+			<div class="box box2">
+				<strong class="username">{% raw -%} {{ username }} {%- endraw %}</strong> <span class="timestamp">Today at {% raw -%} {{ timestamp }} {%- endraw %}</span>
+				<br>
+				{% raw -%} {{ message }} {%- endraw %}
+			</div>
+		<hr>
+		</div>
+
+	</script>
 </body>
 </html>
