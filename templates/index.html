@@ -59,21 +59,25 @@
 				<span><strong>Current room</strong></span>:
 				<select>
 					<optgroup label="Chat Rooms">
-						<option value="general"># general</option>
+						{% for room in rooms%}
+						<option value="{{ room }}"># {{ room }}</option>
+						{% endfor %}
 					</optgroup>
 				</select>
 				<input type="button" id="add-room" value="&#43;">
 				<br>
-				<span id="room-created"><strong>* New room created!</strong></span>
+				<span id="room-created"><strong>* New room successfully created!</strong></span>
 				<!-- Create a new room -->
 				<div class="create-room">
 					<form id="create-room">
 						<p>Type a unique room name:
 							<br>
-							<span style="font-size: 0.7rem;"><em>Max. 12 chararacters, no spaces.</em></span>
+							<span style="font-size: 0.7rem;"><em>Max. 16 alphanumeric chararacters.</em></span>
 						</p>
-						<input type="text" name="new-room" id="new-room" maxlength="12" pattern="[A-Za-z0-9]+" required>
+						<input type="text" name="new-room" id="new-room" autofocus maxlength="16" pattern="[A-Za-z0-9]+" required>
 						<input type="submit" id="submit-room" value="OK">
+						<br>
+						<span id="room-exists">Oops, that room already exists.</span>
 					</form>
 				</div>
 			</div>

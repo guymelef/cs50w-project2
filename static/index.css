@@ -61,7 +61,7 @@ nav > a {
 	to {top:0; opacity: 1}
 }
 
-#not-welcome {
+#not-welcome, #room-exists {
 	font-size: 0.75em;
 	color: red;
 	font-weight: bold;
@@ -92,6 +92,10 @@ input, select {
 	font-family: 'Orbitron', sans-serif;
 }
 
+select {
+	font-weight: bold;
+}
+
 p {
 	font-size: 0.9em;
 	padding: 3px;
@@ -119,6 +123,7 @@ select {
 
 #add-room {
 	width: 30px;
+	font-weight: bold;
 }
 
 #new-room {

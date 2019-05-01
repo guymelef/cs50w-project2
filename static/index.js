@@ -3,14 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-
-    socket.on('connect', () => { console.log("SUCCESS!") });
+    socket.on('connect', () => { 
+        console.log("SUCCESS!");
+    });
 
     // Hide some elements by default
     document.querySelector(".create-room").style.display = "none";
     document.querySelector("#room-created").style.display = "none";
     document.querySelector("#not-welcome").style.display = "none";
+    document.querySelector("#room-exists").style.display = "none";
 
+    // Check if user is new or not
     if (!localStorage.getItem("user")) {
         document.querySelector(".modal").style.display = "block";
         let username;
@@ -51,9 +54,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;      
         }
     } else {
-        // 
+        // Setup user's default room
         document.querySelector("#welcome").innerHTML = `O hai, <u>${localStorage.getItem("user")}</u>!`;
-
+        if (!localStorage.getItem("lastRoom")) {
+            localStorage.setItem("lastRoom", "general");
+            document.querySelector("select>optgroup>option[value='general']").selected;
+        } else {
+            // setup last room for user
+            const lastRoom = localStorage.getItem("lastRoom");
+            document.querySelector(`select>optgroup>option[value=${lastRoom}]`).selected = true;
+        }
     }
 
     // Disable chat button by default
@@ -67,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelector('#submit-chat').disabled = true;
     };
 
+    // When user types a messange in chat box
     document.querySelector("#new-message").onsubmit = () => {
 
         // Template for chat box messages
@@ -92,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     };
     
-    // show room creation div when button is clicked
+    // Show room creation div when button is clicked
     document.querySelector("#add-room").onclick = () => {
         if (document.querySelector(".create-room").style.display == "none") {            
             document.querySelector("#add-room").value = "-";            
@@ -103,18 +114,56 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-   // When user submits form to create new room
+   // When user creates new room
    document.querySelector("#create-room").onsubmit = () => {
-        const room = document.querySelector("#new-room").value;
-        const option = document.createElement("option");
-        option.text = `# ${room}`;
-        document.querySelector("select>optgroup").append(option);
-        document.querySelector("#new-room").value = "";
-        document.querySelector(".create-room").style.display = "none";
-        document.querySelector("#room-created").style.display = "block";
-        setTimeout(() => { 
-            document.querySelector("#room-created").style.display = "none";
-            document.querySelector("#add-room").value = "+";}, 1500);
+        const room = (document.querySelector("#new-room").value).toLowerCase();
+
+        // Create AJAX request, check username with server
+        const request = new XMLHttpRequest();
+        request.open("POST", "/newroom");
+
+        // When request completes
+        request.onload = () => {
+
+            // Extract JSON
+            const data = JSON.parse(request.responseText);
+
+            // Check if username is accepted
+            if (data.success) {
+                localStorage.setItem("lastRoom", room);
+                const option = document.createElement("option");
+                option.value = room;
+                option.text = `# ${room}`;
+                document.querySelector("select>optgroup").append(option);
+                document.querySelector("#new-room").value = "";
+                document.querySelector(".create-room").style.display = "none";
+                document.querySelector("#room-created").style.display = "block";
+                setTimeout(() => { 
+                    document.querySelector("#room-created").style.display = "none";
+                    document.querySelector("#add-room").value = "+";}, 1500);
+                // switch to newly created room
+                document.querySelector(`select>optgroup>option[value=${room}]`).selected = true;
+                return false;
+            } else {
+                document.querySelector("#room-exists").style.display = "block";
+                setTimeout(() => {
+                    document.querySelector("#room-exists").style.display = "none";
+                }, 2000);
+            }
+        }
+
+        // Add data to send with request
+        const data = new FormData();
+        data.append("room", room);
+
+        // Send request
+        request.send(data);
         return false;
    }
+
+   // When switching rooms
+   document.querySelector("select").onchange = function() {
+    localStorage.setItem("lastRoom", this.value);
+   }
+
 });
