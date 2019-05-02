@@ -20,9 +20,7 @@ nav > a {
 }
 
 @keyframes blink {
-  50% {
-    opacity: 0;
-  }
+	50% {opacity: 0;}
 }
 
 .modal {
@@ -48,7 +46,7 @@ nav > a {
 	height: 50%;
 	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 	animation-name: drop;
-	animation-duration: 0.5s
+	animation-duration: 0.5s;
 }
 
 .modal-body {
@@ -57,8 +55,8 @@ nav > a {
 }
 
 @keyframes drop {
-	from {top:-300px; opacity: 0}
-	to {top:0; opacity: 1}
+	from {top:-300px; opacity: 0;}
+	to {top:0; opacity: 1;}
 }
 
 #not-welcome, #room-exists {
@@ -82,9 +80,48 @@ nav > a {
 	overflow-x: hidden;
 	overflow-y: auto;
 	background-color: whitesmoke;
-	margin-bottom: 	5px;
+	margin-bottom: 5px;
 	padding: 2px;
 	font-family: 'Quantico', sans-serif;
+}
+
+.chat-messages {
+	width: 440px;
+	margin: 5px;
+	display: grid;
+	clear: both;
+	grid-template-columns: 10% 90%;
+	border: 1px solid silver;
+	overflow-wrap: break-word;
+	line-height: 95%;
+}
+
+.box {
+	padding: 3px;
+	position: relative;
+}
+.timestamp {
+	font-size: 0.7em;
+	color: dimgray;
+}
+
+.username {
+	color: darkslategray;
+}
+
+img	{
+	width: 90%;
+	position: absolute;
+	top: 3px;
+}
+
+.join-div {
+	width: 440px;
+	margin: 5px;
+	text-align: center;
+	border: 1px steelblue silver;
+	background-color: steelblue;
+	font-size: 0.8em;
 }
 
 input, select {
@@ -94,6 +131,7 @@ input, select {
 
 select {
 	font-weight: bold;
+	width: 87%;
 }
 
 p {
@@ -110,17 +148,6 @@ p {
 	padding: 10px;
 }
 
-@media screen and (max-width: 600px) {
-	.grid-container {
-		grid-template-columns: auto;
-		justify-content: center;
-	}
-}
-
-select {
-	width: 87%;
-}
-
 #add-room {
 	width: 30px;
 	font-weight: bold;
@@ -131,7 +158,7 @@ select {
 }
 
 .create-room {
-	padding: 0px 1px 3px 3px;
+	padding: 0px 0px 3px 3px;
 	background-color: steelblue;
 }
 
@@ -141,44 +168,9 @@ select {
 	color: steelblue;
 }
 
-.timestamp {
-	font-size: 0.7em;
-	color: dimgray;
-}
-
-.username {
-	color: darkslategray;
-}
-
-.chat-messages {
-	width: 440px;
-	margin: 5px;
-}
-
-img	{
-	height: 100%;
-	width: 100%;
-	padding-right: 7px;
-}
-
-.box {
-	float: left;
-}
-
-.box1 {
-	width: 10%
-}
-
-.box2 {
-	width: 90%
-}
-
-.wrapper {
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	grid-gap: 10px;
-	grid-auto-rows: 200px;
-	grid-template-areas: 
-		". a a ."
-		". a a .";
+@media screen and (max-width: 600px) {
+	.grid-container {
+		grid-template-columns: auto;
+		justify-content: center;
+	}
 }
