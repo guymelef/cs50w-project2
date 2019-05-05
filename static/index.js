@@ -4,11 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     socket.on('connect', () => { 
-        console.log("SUCCESS! SOCKET IS CONNECTED.");
+        console.log("OH MY, IT'S ALIVE!!!");
     });
 
     // Hide/disable some elements by default
-    document.querySelector(".create-room").style.display = "none";
+    document.querySelector("#create-room").style.display = "none";
     document.querySelector("#room-created").style.display = "none";
     document.querySelector("#not-welcome").style.display = "none";
     document.querySelector("#room-exists").style.display = "none";
@@ -16,8 +16,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check if user is new or not
     if (!localStorage.getItem("user")) {
-        document.querySelector(".modal").style.display = "block";
         document.querySelector("#blink").style.animationPlayState = "paused";
+        document.querySelector(".modal").style.display = "block";
+        document.querySelector(".modal").addEventListener("animationend", () => {
+            document.querySelector("#username").focus();
+        });
         let username;
 
         document.querySelector("#new-user").onsubmit = () => {
@@ -44,7 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     localStorage.setItem("lastRoom", "general");
                     document.querySelector("select>optgroup>option[value='general']").selected;
                     socket.emit("join room", {"room": "general", "user": username});
-
+                    document.querySelector("#chat-message").focus();
+                    getMessages("general");
                     // Stop form from submitting
                     return false;
                 } else {
@@ -67,8 +71,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Join user's lastRoom
         document.querySelector("#welcome").innerHTML = `O hai, <u>${localStorage.getItem("user")}</u>!`;
         const lastRoom = localStorage.getItem("lastRoom");
-        document.querySelector(`select>optgroup>option[value=${lastRoom}]`).selected = true;
+        document.querySelector(`select>optgroup>option[value="${lastRoom}"]`).selected = true;
         socket.emit("join room", {"room": lastRoom, "user": localStorage.getItem("user")});
+        getMessages(lastRoom);
     }
     
     // Enable submit button when input box has content
@@ -86,20 +91,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // When user types a message in chat box
     document.querySelector("#new-message").onsubmit = () => {
 
-        // Template for chat box messages
-        const template = Handlebars.compile(document.querySelector("#message").innerHTML);
-
         // Get message timestamp
         const date = new Date();
-        const timestamp = date.getHours() + ":" + date.getMinutes();
+        const dateString = date.toDateString();
+        const timeString = date.toLocaleTimeString("en-US");
         // Store message
         const message = document.querySelector("#chat-message").value;
         // Store username
-        const username = localStorage.getItem("user");
+        const user = localStorage.getItem("user");
+        // Store current selected room
+        const room = localStorage.getItem("lastRoom");
+        
+        // Emit "send message" event to selected room
+        socket.emit("send message", {"room": room, "user": user, "date": dateString, "time": timeString, "message": message});
 
-        // Add message to DOM
-        const content = template({"timestamp":timestamp, "message":message, "username":username});
-        document.querySelector("#chat-box").innerHTML += content;
         // Clear input field and disable button again
         document.querySelector('#chat-message').value = '';
         document.querySelector('#submit-chat').disabled = true;
@@ -110,18 +115,19 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Show room creation div when button is clicked
     document.querySelector("#add-room").onclick = () => {
-        if (document.querySelector(".create-room").style.display == "none") {            
+        if (document.querySelector("#create-room").style.display == "none") {            
             document.querySelector("#add-room").value = "-";            
-            document.querySelector(".create-room").style.display = "block";
+            document.querySelector("#create-room").style.display = "block";
+            document.querySelector("#new-room").focus();
         } else {
             document.querySelector("#add-room").value = "+";
-            document.querySelector(".create-room").style.display = "none";
+            document.querySelector("#create-room").style.display = "none";
         }
     }
 
    // When user creates new room
    document.querySelector("#create-room").onsubmit = () => {
-        const room = (document.querySelector("#new-room").value).toLowerCase();
+        const room = (document.querySelector("#new-room").value);
 
         // Create AJAX request, check room name with server
         const request = new XMLHttpRequest();
@@ -135,26 +141,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Check if room name is accepted
             if (data.success) {
-                localStorage.setItem("lastRoom", room);
                 
-                // Append new room then emit "join room" event
+                // Leave lastRoom, append new room, then emit "join room"
+                socket.emit("leave room", {"room": localStorage.getItem("lastRoom"), "user": localStorage.getItem("user")});
                 const option = document.createElement("option");
                 option.value = room;
                 option.text = `# ${room}`;
                 document.querySelector("select>optgroup").append(option);
-                document.querySelector(`select>optgroup>option[value=${room}]`).selected = true;
-                socket.emit("join room", {"room": room, "user": localStorage.getItem("user")})
-                
+                document.querySelector(`select>optgroup>option[value="${room}"]`).selected = true;
+                localStorage.setItem("lastRoom", room);               
+                socket.emit("join room", {"room": room, "user": localStorage.getItem("user")});
+                document.querySelector("#chat-box").innerHTML = "";
+                document.querySelector("#chat-message").focus();
+
                 // Emit "create room" event to others except sender
                 socket.emit("create room", {"room":room});
                 
                 // Hide/show elements
                 document.querySelector("#new-room").value = "";
-                document.querySelector(".create-room").style.display = "none";
+                document.querySelector("#create-room").style.display = "none";
                 document.querySelector("#room-created").style.display = "block";
                 setTimeout(() => { 
                     document.querySelector("#room-created").style.display = "none";
-                    document.querySelector("#add-room").value = "+";}, 1500);
+                    document.querySelector("#add-room").value = "+";}, 2000);
 
                 // Stop form from submitting
                 return false;
@@ -175,10 +184,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
    }
 
-   // Trigger "join room" event when switching rooms
+   // When user switches room from select options
    document.querySelector("select").onchange = function() {
+        socket.emit("join room", {"room": this.value, "user": localStorage.getItem("user")});
+        document.querySelector("#chat-box").innerHTML = "";
+        socket.emit("leave room", {"room": localStorage.getItem("lastRoom"), "user": localStorage.getItem("user")});
         localStorage.setItem("lastRoom", this.value);
-        socket.emit("join room", {"room": this.value, "user": localStorage.getItem("user")})
+        document.querySelector("#chat-message").focus();
+        getMessages(this.value);
    }
 
    // When a new room is announced, add to select options
@@ -192,8 +205,79 @@ document.addEventListener("DOMContentLoaded", () => {
    // When a user joins a room
    socket.on("joined room", data => {
         let message = data["message"];
-        message = `<div class="join-div username">${message}</div>`;
+        message = `<div class="join-div username">► ${message}</div>`;
         document.querySelector("#chat-box").innerHTML += message;
+        document.querySelector("#chat-box").scrollTo(0, 999999);
    })
 
+   // Welcome user to new room
+   socket.on("welcome", data => {
+        let message = data["message"];
+        message = `<div class="welcome-div username">► ${message} ◄</div>`;
+        document.querySelector("#chat-box").innerHTML += message;
+        document.querySelector("#chat-box").scrollTo(0, 999999);
+   })
+
+   // When a user leaves a room
+   socket.on("left room", data => {
+        let message = data["message"];
+        message = `<div class="leave-div username">◄ ${message}</div>`;
+        document.querySelector("#chat-box").innerHTML += message;
+        document.querySelector("#chat-box").scrollTo(0, 999999);
+   })
+
+   // When new message arrives
+   socket.on("new message", data => {
+        // Process handlebars script
+        const template = Handlebars.compile(document.querySelector("#message").innerHTML);
+        const dateString = new Date().toDateString();
+        let timeStamp = "";
+        if (dateString == data["dateString"])
+            timeStamp = `Today at ${data["timeString"]}`;
+        else
+            timeStamp = `${data["dateString"]} at ` + data["timeString"];
+        const content = template({"user":data["user"], "timestamp":timeStamp, "message":data["message"]});
+        // Add message to DOM
+        document.querySelector("#chat-box").innerHTML += content;
+        document.querySelector("#chat-box").scrollTo(0, 999999);
+   })
 });
+
+
+function getMessages(room) {
+    // Create AJAX request, check room name with server
+    const request = new XMLHttpRequest();
+    request.open("POST", "/messages");
+
+    // When request completes
+    request.onload = () => {
+
+           const messages =  JSON.parse(request.responseText);
+
+           if (messages.length > 0) {
+            messages.forEach(message => {
+                // Process handlebars script
+                const template = Handlebars.compile(document.querySelector("#message").innerHTML);
+                const dateString = new Date().toDateString();
+                let timeStamp = "";
+                if (dateString == message.dateString)
+                    timeStamp = `Today at ${message.timeString}`;
+                else
+                    timeStamp = message.dateString.slice(4) + ` at ${message.timeString}`;
+                const content = template({"user":message.user, "timestamp":timeStamp, "message":message.message});
+                // Add message to DOM
+                document.querySelector("#chat-box").innerHTML += content;
+            })
+           }
+
+           document.querySelector("#chat-box").scrollTo(0, 999999);
+    }
+
+    // Add data to send with request
+    const data = new FormData();
+    data.append("room", room);
+
+    // Send request
+    request.send(data);
+    return false;  
+}

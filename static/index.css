@@ -81,12 +81,10 @@ nav > a {
 	overflow-y: auto;
 	background-color: whitesmoke;
 	margin-bottom: 5px;
-	padding: 2px;
 	font-family: 'Quantico', sans-serif;
 }
 
 .chat-messages {
-	width: 440px;
 	margin: 5px;
 	display: grid;
 	clear: both;
@@ -115,13 +113,25 @@ img	{
 	top: 3px;
 }
 
-.join-div {
-	width: 440px;
+.join-div, .leave-div, .welcome-div {
 	margin: 5px;
-	text-align: center;
-	border: 1px steelblue silver;
-	background-color: steelblue;
+	padding: 0 5px 0 5px;
+	text-align: right;
+	border: 1px solid lightsteelblue;
+	background-color: lightsteelblue;
 	font-size: 0.8em;
+}
+
+.leave-div {
+	text-align: left;
+	border: 1px solid silver;
+	background-color: silver;
+}
+
+.welcome-div {
+	text-align: center;
+	border: 1px solid lavender;
+	background-color: lavender;
 }
 
 input, select {
@@ -154,18 +164,18 @@ p {
 }
 
 #new-room {
-	width: 83%;
+	width: 84%;
 }
 
-.create-room {
-	padding: 0px 0px 3px 3px;
+#create-room {
+	padding: 0 0 2px 2px;
 	background-color: steelblue;
 }
 
 #room-created {
 	font-size: 0.8em;
 	margin-top: 5px;
-	color: steelblue;
+	background-color: silver;
 }
 
 @media screen and (max-width: 600px) {

@@ -6,13 +6,12 @@
 
 	<!-- scripts -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.1.2/handlebars.min.js"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>
 
 	<!-- fonts -->
 	<link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Quantico" rel="stylesheet">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='index.css')}}">
@@ -30,40 +29,36 @@
 	<div class="grid-container">
 		<div class="grid1">
 			<div id="chat-box">
-
+				<!-- Messages go here. -->
 			</div>
-			<div>
-				<form id="new-message">
-					<input id="chat-message" type="text" autocomplete="off" size="43" autofocus placeholder="Send a message">
-					<input id="submit-chat" type="submit" value="Chat">
-				</form>
-			</div>
+			<form id="new-message">
+				<input id="chat-message" type="text" autocomplete="off" size="43" autofocus placeholder="Send a message">
+				<input id="submit-chat" type="submit" value="Chat">
+			</form>
 		</div>
 		<div class="grid2">
 			<div id="navigation">
 				<h3><span id="welcome">Welcome to Flack!</span></h3>
-				<p>Join another room or create one.</p>
-				<span><strong>Current room</strong></span>:
+				<p>Join a channel or create a new one.</p>
+				<strong>Current channel:</strong>
 				<select>
-					<optgroup label="Chat Rooms">
+					<optgroup label="Public Channels">
 						{% for room in rooms%}
-						<option value="{{ room }}"># {{ room }}</option>
+							<option value="{{ room }}"># {{ room }}</option>
 						{% endfor %}
 					</optgroup>
 				</select>
 				<input type="button" id="add-room" value="&#43;">
 				<br>
-				<span id="room-created"><strong>* New room successfully created!</strong></span>
+				<span id="room-created"><strong><span style="color:steelblue;">▲</span> New channel successfully created!</strong></span>
 				<!-- Create a new room -->
-				<div class="create-room">
-					<form id="create-room">
-						<p>Type a unique room name:</p>
-						<input type="text" name="new-room" id="new-room" autofocus maxlength="16" pattern="[A-Za-z0-9-]+" title="Alphanumeric & dash accepted (max. 16)." required>
-						<input type="submit" id="submit-room" value="OK">
-						<br>
-						<span id="room-exists">Oops, that room already exists.</span>
-					</form>
-				</div>
+				<form id="create-room">
+					<p>Type a unique channel name:</p>
+					<input type="text" name="new-room" id="new-room" autofocus maxlength="16" pattern="[A-Za-z0-9-]+" title="Alphanumeric & dash accepted (max. 16)." required>
+					<input type="submit" id="submit-room" value="OK">
+					<br>
+					<span id="room-exists">Oops, that channel already exists.</span>
+				</form>
 			</div>
 		</div>
 	</div>
@@ -90,7 +85,7 @@
 				<img src="{{url_for('static', filename='robot-solid.svg')}}">
 			</div>
 			<div class="box">
-				<strong class="username">{% raw -%} {{ username }} {%- endraw %}</strong> <span class="timestamp">Today at {% raw -%} {{ timestamp }} {%- endraw %}</span>
+				<strong class="username">{% raw -%} {{ user }} {%- endraw %}</strong> <span class="timestamp"> {% raw -%} {{ timestamp }} {%- endraw %}</span>
 				<br>
 				{% raw -%} {{ message }} {%- endraw %}
 			</div>
