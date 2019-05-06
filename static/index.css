@@ -60,9 +60,10 @@ nav > a {
 }
 
 #not-welcome, #room-exists {
-	font-size: 0.75em;
+	font-size: 0.8em;
 	color: red;
 	font-weight: bold;
+	margin-left: 1px;
 }
 
 .grid-container {
