@@ -7,47 +7,41 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
-users = []							# keep track of users in the server
 
-rooms = ["general"]					# keep track of rooms and add new ones
-messages = {"general" : []}			# store 100 recent messages from each room
+users = {}									# keep track of users and their sid
+channelMessages = {"general" : []}			# store 100 recent messages from each room
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
-	return render_template("index.html", rooms=rooms)
+	if request.method == "POST":
+		# Return messages list for room
+		room = request.form.get("room")
+		return jsonify(channelMessages[room])
+	return render_template("index.html", channels=list(channelMessages.keys()))
 
 
-@app.route("/login", methods=["POST"])
-def login():
-	# Check if username already exists
-	username = request.form.get("username").lower()
-	if username in users:
-		return jsonify({"success":False})
+# Verify username
+@socketio.on("user check")
+def userCheck(data):
+	user = data["username"]
+	# Check if user is new or not
+	if users.get(user.lower()) is None:
+		users[user.lower()] = request.sid
+		emit("user checked", {"success":1, "user":user}, room=request.sid)
+	else:
+		emit("user checked", {"success":0}, room=request.sid)
 
-	# add new user to users
-	users.append(username)
-	return jsonify({"success":True})
-
-
-@app.route("/newroom", methods=["POST"])
-def newroom():
-	# Check if room already exists
-	room = request.form.get("room").lower()
-	if room in rooms:
-		return jsonify({"success":False})
-	
-	# Add new room to rooms
-	rooms.append(room)
-	messages[room] = []
-	return jsonify({"success":True})
-
-@app.route("/messages", methods=["POST"])
-def getMessages():
-	# Return messages list for room
-	room = request.form.get("room")
-	return jsonify(messages[room])
-
+# Verify room name
+@socketio.on("room check")
+def roomCheck(data):
+	room = data["room"].lower()
+	#Check if room exists
+	if channelMessages.get(room) is None:
+		channelMessages[room] = []
+		emit("room checked", {"success":1, "room":room}, room=request.sid)
+	else:
+		emit("room checked", {"success":0}, room=request.sid)
 
 # Broadcast new room except to sender
 @socketio.on("create room")
@@ -72,11 +66,15 @@ def leave(data):
 	leave_room(room)
 	emit("left room", {"message": f"<strong>{user}</strong> has left the channel."}, room=room)
 
-# Send message
+# Broadcast message to room
 @socketio.on("send message")
 def message(data):
 	# Store message
-	messages[data["room"]].append({"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]})
-	if len(messages[data["room"]]) > 100:
-		messages[data["room"]].pop(0)
+	channelMessages[data["room"]].append({"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]})
+	if len(channelMessages[data["room"]]) > 100:
+		channelMessages[data["room"]].pop(0)
 	emit("new message", {"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]}, room=data["room"])
+
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)

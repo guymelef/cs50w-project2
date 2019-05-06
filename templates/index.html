@@ -43,8 +43,8 @@
 				<strong>Current channel:</strong>
 				<select>
 					<optgroup label="Public Channels">
-						{% for room in rooms%}
-							<option value="{{ room }}"># {{ room }}</option>
+						{% for channel in channels %}
+							<option value="{{ channel }}"># {{ channel }}</option>
 						{% endfor %}
 					</optgroup>
 				</select>
@@ -63,7 +63,7 @@
 		</div>
 	</div>
 
-	<!-- Modal to prompt user for username -->
+	<!-- Modal to prompt user -->
 	<div class="modal">
 		<div class="modal-content">
 			<div class="modal-body">

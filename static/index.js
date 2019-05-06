@@ -1,12 +1,5 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => { // START OF 'DOMContentLoaded' listener code
     
-    // Connect to websocket
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-
-    socket.on('connect', () => { 
-        console.log("OH MY, IT'S ALIVE!!!");
-    });
-
     // Hide/disable some elements by default
     document.querySelector("#create-room").style.display = "none";
     document.querySelector("#room-created").style.display = "none";
@@ -14,191 +7,163 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("#room-exists").style.display = "none";
     document.querySelector("#submit-chat").disabled = true;
 
-    // Check if user is new or not
-    if (!localStorage.getItem("user")) {
-        document.querySelector("#blink").style.animationPlayState = "paused";
-        document.querySelector(".modal").style.display = "block";
-        document.querySelector(".modal").addEventListener("animationend", () => {
-            document.querySelector("#username").focus();
-        });
-        let username;
+    // Connect to websocket
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-        document.querySelector("#new-user").onsubmit = () => {
-            username = document.querySelector("#username").value;
-
-            // Create AJAX request, check username with server
-            const request = new XMLHttpRequest();
-            request.open("POST", "/login");
-
-            // When request completes
-            request.onload = () => {
-
-                // Extract JSON
-                const data = JSON.parse(request.responseText);
-
-                // Check if username is accepted
-                if (data.success) {
-                    localStorage.setItem("user", username);
-                    document.querySelector(".modal").style.display = "none";
-                    document.querySelector("#welcome").innerHTML = `O hai, <u>${username}</u>!`;
-                    document.querySelector("#blink").style.animationPlayState = "running";
-
-                    // Have new user join #general room by default
-                    localStorage.setItem("lastRoom", "general");
-                    document.querySelector("select>optgroup>option[value='general']").selected;
-                    socket.emit("join room", {"room": "general", "user": username});
-                    document.querySelector("#chat-message").focus();
-                    getMessages("general");
-                    // Stop form from submitting
-                    return false;
-                } else {
-                    document.querySelector("#not-welcome").style.display = "block";
-                    setTimeout(() => {
-                        document.querySelector("#not-welcome").style.display = "none";
-                    }, 2000);
-                }
-            }
-
-            // Add data to send with request
-            const data = new FormData();
-            data.append("username", username);
-
-            // Send request
-            request.send(data);
-            return false;      
-        }
-    } else {
-        // Join user's lastRoom
-        document.querySelector("#welcome").innerHTML = `O hai, <u>${localStorage.getItem("user")}</u>!`;
-        const lastRoom = localStorage.getItem("lastRoom");
-        document.querySelector(`select>optgroup>option[value="${lastRoom}"]`).selected = true;
-        socket.emit("join room", {"room": lastRoom, "user": localStorage.getItem("user")});
-        getMessages(lastRoom);
-    }
+    socket.on('connect', () => {                                // START OF SOCKET 'connect' CODE
+        console.log("OH MY, IT'S ALIVE!!!");
     
-    // Enable submit button when input box has content
-    document.querySelector('#chat-message').onkeyup = () => {
-        // Check if message only has spaces
-        let message = document.querySelector('#chat-message').value;
-        message = message.trim();
+        // Check if user is new or not
+        if (!localStorage.getItem("user")) {
+            document.querySelector("#blink").style.animationPlayState = "paused";
+            document.querySelector(".modal").style.display = "block";
+            setTimeout(() => {
+                document.querySelector("#username").focus();
+            }, 500);
 
-        if (message.length > 0)
-            document.querySelector('#submit-chat').disabled = false;
-        else
-            document.querySelector('#submit-chat').disabled = true;
-    };
-
-    // When user types a message in chat box
-    document.querySelector("#new-message").onsubmit = () => {
-
-        // Get message timestamp
-        const date = new Date();
-        const dateString = date.toDateString();
-        const timeString = date.toLocaleTimeString("en-US");
-        // Store message
-        const message = document.querySelector("#chat-message").value;
-        // Store username
-        const user = localStorage.getItem("user");
-        // Store current selected room
-        const room = localStorage.getItem("lastRoom");
-        
-        // Emit "send message" event to selected room
-        socket.emit("send message", {"room": room, "user": user, "date": dateString, "time": timeString, "message": message});
-
-        // Clear input field and disable button again
-        document.querySelector('#chat-message').value = '';
-        document.querySelector('#submit-chat').disabled = true;
-
-        // Stop form from submitting
-        return false;
-    };
-    
-    // Show room creation div when button is clicked
-    document.querySelector("#add-room").onclick = () => {
-        if (document.querySelector("#create-room").style.display == "none") {            
-            document.querySelector("#add-room").value = "-";            
-            document.querySelector("#create-room").style.display = "block";
-            document.querySelector("#new-room").focus();
-        } else {
-            document.querySelector("#add-room").value = "+";
-            document.querySelector("#create-room").style.display = "none";
-        }
-    }
-
-   // When user creates new room
-   document.querySelector("#create-room").onsubmit = () => {
-        const room = (document.querySelector("#new-room").value);
-
-        // Create AJAX request, check room name with server
-        const request = new XMLHttpRequest();
-        request.open("POST", "/newroom");
-
-        // When request completes
-        request.onload = () => {
-
-            // Extract JSON
-            const data = JSON.parse(request.responseText);
-
-            // Check if room name is accepted
-            if (data.success) {
-                
-                // Leave lastRoom, append new room, then emit "join room"
-                socket.emit("leave room", {"room": localStorage.getItem("lastRoom"), "user": localStorage.getItem("user")});
-                const option = document.createElement("option");
-                option.value = room;
-                option.text = `# ${room}`;
-                document.querySelector("select>optgroup").append(option);
-                document.querySelector(`select>optgroup>option[value="${room}"]`).selected = true;
-                localStorage.setItem("lastRoom", room);               
-                socket.emit("join room", {"room": room, "user": localStorage.getItem("user")});
-                document.querySelector("#chat-box").innerHTML = "";
-                document.querySelector("#chat-message").focus();
-
-                // Emit "create room" event to others except sender
-                socket.emit("create room", {"room":room});
-                
-                // Hide/show elements
-                document.querySelector("#new-room").value = "";
-                document.querySelector("#create-room").style.display = "none";
-                document.querySelector("#room-created").style.display = "block";
-                setTimeout(() => { 
-                    document.querySelector("#room-created").style.display = "none";
-                    document.querySelector("#add-room").value = "+";}, 2000);
-
-                // Stop form from submitting
+            // Emit event to check username
+            document.querySelector("#new-user").onsubmit = () => {
+                const username = document.querySelector("#username").value;
+                socket.emit("user check", {"username": username});
                 return false;
+            }
+        } else {
+            // Join user's lastRoom
+            document.querySelector("#welcome").innerHTML = `O hai, <u>${localStorage.getItem("user")}</u>!`;
+            const lastRoom = localStorage.getItem("lastRoom");
+            document.querySelector(`select>optgroup>option[value="${lastRoom}"]`).selected = true;
+            socket.emit("join room", {"room": lastRoom, "user": localStorage.getItem("user")});
+            getMessages(lastRoom);
+        }
+        
+        // Enable submit button when input box has content
+        document.querySelector('#chat-message').onkeyup = () => {
+            
+            // Check if message only has spaces
+            let message = document.querySelector('#chat-message').value;
+            message = message.trim();
+            if (message.length > 0)
+                document.querySelector('#submit-chat').disabled = false;
+            else
+                document.querySelector('#submit-chat').disabled = true;
+        };
+
+        // When user types a message in chat box
+        document.querySelector("#new-message").onsubmit = () => {
+
+            // Get message timestamp
+            const date = new Date();
+            const dateString = date.toDateString();
+            const timeString = date.toLocaleTimeString("en-US");
+            // Store message
+            const message = document.querySelector("#chat-message").value;
+            // Store username
+            const user = localStorage.getItem("user");
+            // Store current selected room
+            const room = localStorage.getItem("lastRoom");
+            
+            // Emit "send message" event to selected room
+            socket.emit("send message", {"room": room, "user": user, "date": dateString, "time": timeString, "message": message});
+
+            // Clear input field and disable button again
+            document.querySelector('#chat-message').value = '';
+            document.querySelector('#submit-chat').disabled = true;
+
+            // Stop form from submitting
+            return false;
+        };
+        
+        // Show room creation div when button is clicked
+        document.querySelector("#add-room").onclick = () => {
+            if (document.querySelector("#create-room").style.display == "none") {            
+                document.querySelector("#add-room").value = "-";            
+                document.querySelector("#create-room").style.display = "block";
+                document.querySelector("#new-room").focus();
             } else {
-                document.querySelector("#room-exists").style.display = "block";
-                setTimeout(() => {
-                    document.querySelector("#room-exists").style.display = "none";
-                }, 2000);
+                document.querySelector("#add-room").value = "+";
+                document.querySelector("#create-room").style.display = "none";
             }
         }
 
-        // Add data to send with request
-        const data = new FormData();
-        data.append("room", room);
+       // Check room name with server
+       document.querySelector("#create-room").onsubmit = () => {
+            const room = document.querySelector("#new-room").value;
+            socket.emit("room check", {"room": room});
+            return false;
+       }
 
-        // Send request
-        request.send(data);
-        return false;
-   }
+       // When user switches room from select options
+       document.querySelector("select").onchange = function() {
+            socket.emit("join room", {"room": this.value, "user": localStorage.getItem("user")});
+            document.querySelector("#chat-box").innerHTML = "";
+            socket.emit("leave room", {"room": localStorage.getItem("lastRoom"), "user": localStorage.getItem("user")});
+            localStorage.setItem("lastRoom", this.value);
+            document.querySelector("#chat-message").focus();
+            getMessages(this.value);
+       }
+   });                                                              // END OF SOCKET CONNECTED CODE
 
-   // When user switches room from select options
-   document.querySelector("select").onchange = function() {
-        socket.emit("join room", {"room": this.value, "user": localStorage.getItem("user")});
-        document.querySelector("#chat-box").innerHTML = "";
-        socket.emit("leave room", {"room": localStorage.getItem("lastRoom"), "user": localStorage.getItem("user")});
-        localStorage.setItem("lastRoom", this.value);
-        document.querySelector("#chat-message").focus();
-        getMessages(this.value);
-   }
+    // After checking username with server
+    socket.on("user checked", data => {
+        if (data["success"]) {
+            localStorage.setItem("user", data["user"]);
+            document.querySelector(".modal").style.display = "none";
+            document.querySelector("#welcome").innerHTML = `O hai, <u>${data["user"]}</u>!`;
+            document.querySelector("#blink").style.animationPlayState = "running";
+
+            // Have new user join #general room by default
+            localStorage.setItem("lastRoom", "general");
+            document.querySelector("select>optgroup>option[value='general']").selected;
+            socket.emit("join room", {"room": "general", "user": data["user"]});
+            document.querySelector("#chat-message").focus();
+            getMessages("general");
+        } else {
+            document.querySelector("#not-welcome").style.display = "block";
+            setTimeout(() => {
+                document.querySelector("#not-welcome").style.display = "none";
+            }, 2000);
+        }
+    })
+
+    // After checking room name with server
+    socket.on("room checked", data => {
+        if (data["success"]) {
+            // Leave lastRoom, append new room, then emit "join room"
+            socket.emit("leave room", {"room": localStorage.getItem("lastRoom"), "user": localStorage.getItem("user")});
+            const option = document.createElement("option");
+            option.value = data["room"];
+            option.text = `# ${data["room"]}`;
+            document.querySelector("select>optgroup").append(option);
+            document.querySelector(`select>optgroup>option[value="${data["room"]}"]`).selected = true;
+            localStorage.setItem("lastRoom", data["room"]);               
+            socket.emit("join room", {"room": data["room"], "user": localStorage.getItem("user")});
+            document.querySelector("#chat-box").innerHTML = "";
+            document.querySelector("#chat-message").focus();
+
+            // Emit "create room" event to others
+            socket.emit("create room", {"room":data["room"]});
+            
+            // Hide/show elements
+            document.querySelector("#new-room").value = "";
+            document.querySelector("#create-room").style.display = "none";
+            document.querySelector("#room-created").style.display = "block";
+            setTimeout(() => { 
+                document.querySelector("#room-created").style.display = "none";
+                document.querySelector("#add-room").value = "+";}, 2000);
+        } else {
+            document.querySelector("#room-exists").style.display = "block";
+            setTimeout(() => {
+                document.querySelector("#room-exists").style.display = "none";
+            }, 2000);
+        }
+    })
+
 
    // When a new room is announced, add to select options
    socket.on("announce new room", data => {
         const option = document.createElement("option");
-        option.value = data.room;
-        option.text = `# ${data.room}`;
+        option.value = data["room"];
+        option.text = `# ${data["room"]}`;
         document.querySelector("select>optgroup").append(option);
    })
 
@@ -213,9 +178,12 @@ document.addEventListener("DOMContentLoaded", () => {
    // Welcome user to new room
    socket.on("welcome", data => {
         let message = data["message"];
-        message = `<div class="welcome-div username">► ${message} ◄</div>`;
+        message = `<div class="welcome-div username">◄ ${message} ►</div>`;
         document.querySelector("#chat-box").innerHTML += message;
         document.querySelector("#chat-box").scrollTo(0, 999999);
+        setTimeout(() => {
+            document.querySelector(".welcome-div").style.display = "none";
+        },3000);
    })
 
    // When a user leaves a room
@@ -241,13 +209,14 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#chat-box").innerHTML += content;
         document.querySelector("#chat-box").scrollTo(0, 999999);
    })
-});
+}); // END OF 'DOMContentLoaded' listener code
 
 
+// Function to fetch channel messages from server
 function getMessages(room) {
     // Create AJAX request, check room name with server
     const request = new XMLHttpRequest();
-    request.open("POST", "/messages");
+    request.open("POST", "/");
 
     // When request completes
     request.onload = () => {
@@ -269,7 +238,6 @@ function getMessages(room) {
                 document.querySelector("#chat-box").innerHTML += content;
             })
            }
-
            document.querySelector("#chat-box").scrollTo(0, 999999);
     }
 
