@@ -77,4 +77,4 @@ def message(data):
 
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, port=int(os.environ.get("PORT", 5000)))
