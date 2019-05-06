@@ -74,3 +74,7 @@ def message(data):
 	if len(channelMessages[data["room"]]) > 100:
 		channelMessages[data["room"]].pop(0)
 	emit("new message", {"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]}, room=data["room"])
+
+
+if __name__ == '__main__':
+    socketio.run(app)
