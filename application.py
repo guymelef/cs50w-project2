@@ -93,7 +93,6 @@ def leave(data):
 @socketio.on("send message")
 def message(data):
 	# Store message
-	print(data);
 	messageDict = {"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]}
 	if "file" in data.keys():
 		messageDict["file"] = data["file"]

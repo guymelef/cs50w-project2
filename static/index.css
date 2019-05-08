@@ -130,7 +130,7 @@ i[class="far fa-file-alt"] {
 }
 
 #uploaded-img {
-	text-align: center;
+	margin-top: 5px;
     max-width: 45%;
     height: auto;
 }

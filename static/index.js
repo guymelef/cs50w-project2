@@ -58,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentL
             document.querySelector("#submit-chat").disabled = false;
         }
 
-
         // When user types a message in chat box
         document.querySelector("#new-message").onsubmit = () => {
 
@@ -87,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentL
             
             // Clear input field and disable button again
             document.querySelector("label[for='file-upload']").style.color = "darkgray";
+            document.querySelector("#submit-chat").value = "Chat";
             document.querySelector("#file-upload").value = "";
             document.querySelector("#chat-message").value = "";
             document.querySelector("#submit-chat").disabled = true;
