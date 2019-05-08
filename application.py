@@ -1,12 +1,20 @@
 import os
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = "uploads"
+ALLOWED_EXTENSIONS = set(["txt", "pdf", "png", "jpg", "jpeg", "gif"])
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 socketio = SocketIO(app)
 
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 users = {}									# keep track of users and their sid
 channelMessages = {"general" : []}			# store 100 recent messages from each room
@@ -15,10 +23,25 @@ channelMessages = {"general" : []}			# store 100 recent messages from each room
 @app.route("/", methods=["GET", "POST"])
 def index():
 	if request.method == "POST":
-		# Return messages list for room
-		room = request.form.get("room")
-		return jsonify(channelMessages[room])
+
+		if request.form.get("room"):
+			# Return messages list for room
+			room = request.form.get("room")
+			return jsonify(channelMessages[room])
+
+		if request.files["file"]:
+			file = request.files["file"]
+			if file and allowed_file(file.filename):
+				filename = secure_filename(file.filename)
+				file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+				return jsonify({"success":1, "url":url_for("uploaded_file", filename=filename), "filetype":file.content_type, "filename":filename})
+			return jsonify({"success":0})
+
 	return render_template("index.html", channels=list(channelMessages.keys()))
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+	return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 # Verify username
@@ -70,10 +93,14 @@ def leave(data):
 @socketio.on("send message")
 def message(data):
 	# Store message
-	channelMessages[data["room"]].append({"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]})
+	print(data);
+	messageDict = {"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]}
+	if "file" in data.keys():
+		messageDict["file"] = data["file"]
+	channelMessages[data["room"]].append(messageDict)
 	if len(channelMessages[data["room"]]) > 100:
 		channelMessages[data["room"]].pop(0)
-	emit("new message", {"user": data["user"], "dateString": data["date"], "timeString": data["time"], "message": data["message"]}, room=data["room"])
+	emit("new message", messageDict, room=data["room"])
 
 
 if __name__ == "__main__":

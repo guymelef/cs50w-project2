@@ -12,6 +12,7 @@
 	<!-- fonts -->
 	<link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Quantico" rel="stylesheet">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='index.css')}}">
@@ -32,8 +33,22 @@
 				<!-- Messages go here. -->
 			</div>
 			<form id="new-message">
-				<input id="chat-message" type="text" autocomplete="off" size="43" autofocus placeholder="Send a message">
-				<input id="submit-chat" type="submit" value="Chat">
+				<div id="message-box" enctype="multipart/form-data">
+					<div class="input-grid">
+						<div style="padding-left: 1px;">
+							<input id="chat-message" type="text" autocomplete="off" size="50" autofocus placeholder=">> Send a message">
+						</div>
+						<div>
+							<label for="file-upload">
+								<i class="fas fa-paperclip"></i>
+							</label>
+							<input type=file name=file id="file-upload">
+						</div>
+					</div>
+				</div>
+				<div id="submit-box" style="background-color: gainsboro">
+					<input id="submit-chat" type="submit" value="Chat">
+				</div>
 			</form>
 		</div>
 		<div class="grid2">
@@ -82,12 +97,20 @@
 	<script id="message" type="text/template">
 		<div class="chat-messages">
 			<div class="box">
-				<img src="{{url_for('static', filename='robot-solid.svg')}}">
+				<img id="avatar" src="{{url_for('static', filename='robot-solid.svg')}}">
 			</div>
 			<div class="box">
 				<strong class="username">{% raw -%} {{ user }} {%- endraw %}</strong> <span class="timestamp"> {% raw -%} {{ timestamp }} {%- endraw %}</span>
 				<br>
-				{% raw -%} {{ message }} {%- endraw %}
+				{% raw -%}
+					{{#if file}}
+						{{fileTypeCheck file}}
+						<br>
+					{{/if}}
+					{{#if message}}
+						{{message}}
+					{{/if}}
+				{%- endraw %}
 			</div>
 		</div>
 	</script>

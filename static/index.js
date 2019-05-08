@@ -1,4 +1,6 @@
-document.addEventListener("DOMContentLoaded", () => { // START OF 'DOMContentLoaded' listener code
+let socket;
+
+document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentLoaded' listener code
     
     // Hide/disable some elements by default
     document.querySelector("#create-room").style.display = "none";
@@ -8,9 +10,10 @@ document.addEventListener("DOMContentLoaded", () => { // START OF 'DOMContentLoa
     document.querySelector("#submit-chat").disabled = true;
 
     // Connect to websocket
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     socket.on('connect', () => {                                // START OF SOCKET 'connect' CODE
+        
         console.log("OH MY, IT'S ALIVE!!!");
     
         // Check if user is new or not
@@ -37,16 +40,24 @@ document.addEventListener("DOMContentLoaded", () => { // START OF 'DOMContentLoa
         }
         
         // Enable submit button when input box has content
-        document.querySelector('#chat-message').onkeyup = () => {
+        document.querySelector("#chat-message").onkeyup = () => {
             
             // Check if message only has spaces
-            let message = document.querySelector('#chat-message').value;
+            let message = document.querySelector("#chat-message").value;
             message = message.trim();
             if (message.length > 0)
-                document.querySelector('#submit-chat').disabled = false;
+                document.querySelector("#submit-chat").disabled = false;
             else
-                document.querySelector('#submit-chat').disabled = true;
+                document.querySelector("#submit-chat").disabled = true;
         };
+
+        // Enable submit button when user attaches a file
+        document.querySelector("#file-upload").onchange = () => {
+            document.querySelector("label[for='file-upload']").style.color = "darkslategray";
+            document.querySelector("#submit-chat").value = "Send";
+            document.querySelector("#submit-chat").disabled = false;
+        }
+
 
         // When user types a message in chat box
         document.querySelector("#new-message").onsubmit = () => {
@@ -61,13 +72,24 @@ document.addEventListener("DOMContentLoaded", () => { // START OF 'DOMContentLoa
             const user = localStorage.getItem("user");
             // Store current selected room
             const room = localStorage.getItem("lastRoom");
-            
-            // Emit "send message" event to selected room
-            socket.emit("send message", {"room": room, "user": user, "date": dateString, "time": timeString, "message": message});
 
+            const messageDict = {"room": room, "user": user, "date": dateString, "time": timeString, "message": message};
+
+            // If user uploads a file
+            if (document.querySelector("#file-upload").value.length > 0) {
+                // Send AJAX request
+                const file = document.querySelector("#file-upload").files[0];
+                const upload = uploadFile(file, messageDict);
+            } else {
+                // Emit "send message" event to selected room if there's no file attached
+                socket.emit("send message", messageDict);
+            }
+            
             // Clear input field and disable button again
-            document.querySelector('#chat-message').value = '';
-            document.querySelector('#submit-chat').disabled = true;
+            document.querySelector("label[for='file-upload']").style.color = "darkgray";
+            document.querySelector("#file-upload").value = "";
+            document.querySelector("#chat-message").value = "";
+            document.querySelector("#submit-chat").disabled = true;
 
             // Stop form from submitting
             return false;
@@ -101,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => { // START OF 'DOMContentLoa
             document.querySelector("#chat-message").focus();
             getMessages(this.value);
        }
-   });                                                              // END OF SOCKET CONNECTED CODE
+   });                                                               // END OF SOCKET CONNECTED CODE
 
     // After checking username with server
     socket.on("user checked", data => {
@@ -196,23 +218,30 @@ document.addEventListener("DOMContentLoaded", () => { // START OF 'DOMContentLoa
 
    // When new message arrives
    socket.on("new message", data => {
-        // Process handlebars script
-        const template = Handlebars.compile(document.querySelector("#message").innerHTML);
-        const dateString = new Date().toDateString();
-        let timeStamp = "";
-        if (dateString == data["dateString"])
-            timeStamp = `Today at ${data["timeString"]}`;
-        else
-            timeStamp = `${data["dateString"]} at ` + data["timeString"];
-        const content = template({"user":data["user"], "timestamp":timeStamp, "message":data["message"]});
-        // Add message to DOM
-        document.querySelector("#chat-box").innerHTML += content;
+        // Send data to help function to process
+        const content = processMessage(data);
+
+        // Scroll to bottom
         document.querySelector("#chat-box").scrollTo(0, 999999);
    })
 }); // END OF 'DOMContentLoaded' listener code
 
 
-// Function to fetch channel messages from server
+// HELPER FUNCTIONS
+function processMessage(data) {
+    // Process handlebars script
+    const template = Handlebars.compile(document.querySelector("#message").innerHTML);
+    const dateString = new Date().toDateString();
+    let timestamp = "";
+    if (dateString == data["dateString"])
+        data["timestamp"] = `Today at ${data["timeString"]}`;
+    else
+        data["timestamp"] = data["dateString"].slice(4) + ` at ${data["timeString"]}`;
+    
+    const content = template(data);
+    document.querySelector("#chat-box").innerHTML += content;
+}
+
 function getMessages(room) {
     // Create AJAX request, check room name with server
     const request = new XMLHttpRequest();
@@ -222,20 +251,11 @@ function getMessages(room) {
     request.onload = () => {
 
            const messages =  JSON.parse(request.responseText);
-
+           console.log(messages);
            if (messages.length > 0) {
             messages.forEach(message => {
-                // Process handlebars script
-                const template = Handlebars.compile(document.querySelector("#message").innerHTML);
-                const dateString = new Date().toDateString();
-                let timeStamp = "";
-                if (dateString == message.dateString)
-                    timeStamp = `Today at ${message.timeString}`;
-                else
-                    timeStamp = message.dateString.slice(4) + ` at ${message.timeString}`;
-                const content = template({"user":message.user, "timestamp":timeStamp, "message":message.message});
-                // Add message to DOM
-                document.querySelector("#chat-box").innerHTML += content;
+                // Send data to help function to process                
+                const content = processMessage(message);
             })
            }
            document.querySelector("#chat-box").scrollTo(0, 999999);
@@ -249,3 +269,54 @@ function getMessages(room) {
     request.send(data);
     return false;  
 }
+
+function uploadFile(file, message) {
+    const request = new XMLHttpRequest();
+    request.open("POST", "/");
+
+        // When request completes
+        request.onload = () => {
+
+            const data = JSON.parse(request.responseText);
+            // If upload succeeds:
+            if (data["success"]) {
+                message["file"] = {"url": data["url"], "filename": data["filename"], "filetype": data["filetype"]};
+                socket.emit("send message", message);
+            } else {
+                alert("Something's not right. :|");
+            }
+        }
+
+    // Add data to send with request
+    const data = new FormData();
+    data.append("file", file);
+
+    // Send request
+    request.send(data);
+    return false;
+}
+
+Handlebars.registerHelper("fileTypeCheck", function(file) {
+    const type = file.filetype;
+    const name = file.filename;
+    const url = file.url;
+
+    if (["jpg", "jpeg", "png", "gif"].includes(type.split("/")[1])) {
+        return new Handlebars.SafeString(
+            "<a href='" + url + "' target=\"_blank\">" + "<img id=\"uploaded-img\" src='" + url + "'></a>"
+        );
+    };
+
+    if (type === "application/pdf") {
+        return new Handlebars.SafeString(
+            "<a href='" + url + "' target=\"_blank\"><i class=\"far fa-file-pdf\"></i> " + name + "</a>"
+        );
+    }
+
+    if (type === "text/plain") {
+        return new Handlebars.SafeString(
+            "<a href='" + url + "' target=\"_blank\"><i class=\"far fa-file-alt\"></i> " + name + "</a>"
+        );
+    }
+
+})

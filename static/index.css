@@ -70,7 +70,7 @@ nav > a {
 	display: grid;
 	justify-content: center;
 	grid-gap: 10px 10px;
-	grid-template-columns: auto auto;
+	grid-template-columns: 40% 23%;
 	margin-top: 40px;
 }
 
@@ -81,7 +81,7 @@ nav > a {
 	overflow-x: hidden;
 	overflow-y: auto;
 	background-color: whitesmoke;
-	margin-bottom: 5px;
+	margin-bottom: 7px;
 	font-family: 'Quantico', sans-serif;
 }
 
@@ -96,9 +96,10 @@ nav > a {
 }
 
 .box {
-	padding: 3px;
+	padding: 4px;
 	position: relative;
 }
+
 .timestamp {
 	font-size: 0.7em;
 	color: dimgray;
@@ -108,10 +109,78 @@ nav > a {
 	color: darkslategray;
 }
 
-img	{
-	width: 90%;
+#avatar	{
+	text-align: center;
+	width: 80%;
 	position: absolute;
 	top: 3px;
+}
+
+a {
+	text-decoration: none;
+	font-size: 0.9em;
+}
+
+i[class="far fa-file-pdf"] {
+	color: tomato;
+}
+
+i[class="far fa-file-alt"] {
+	color: gray;
+}
+
+#uploaded-img {
+	text-align: center;
+    max-width: 45%;
+    height: auto;
+}
+
+input[type="file"] {
+	display: none;
+}
+
+label {
+	color: darkgray;
+	float: right;
+	margin-right: 3px;
+	background-color: transparent;
+}
+
+label:hover {
+	color: gray;
+}
+
+#new-message {
+	display: grid;
+	align-items: center;
+	grid-template-columns: 90% 10%;
+}
+
+.input-grid {
+	display: grid;
+	grid-template-columns: 90% 10%;
+}
+
+#message-box {
+	margin-right: 5px;
+	outline: black solid 0.15rem;
+}
+
+#submit-box {
+	outline: black solid 0.15rem;
+}
+
+#submit-chat {
+	width: 100%;
+	outline: none;
+	border: none;
+	font-family: 'Orbitron', sans-serif;
+}
+
+#chat-message {
+	outline: none;
+	border: none;
+	font-family: 'Orbitron', sans-serif;
 }
 
 .join-div, .leave-div, .welcome-div {
@@ -135,7 +204,7 @@ img	{
 	background-color: lavender;
 }
 
-input, select {
+select, #add-room, #new-room, #submit-room, #username, #submit-id {
 	border: black solid 0.15rem;
 	font-family: 'Orbitron', sans-serif;
 }
