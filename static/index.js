@@ -1,6 +1,6 @@
 let socket;
 
-document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentLoaded' listener code
+document.addEventListener("DOMContentLoaded", () => {  // START OF 'DOMContentLoaded' listener code
     
     // Hide/disable some elements by default
     document.querySelector("#create-room").style.display = "none";
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentL
     // Connect to websocket
     socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-    socket.on('connect', () => {                                // START OF SOCKET 'connect' CODE
+    socket.on('connect', () => {                              // START OF SOCKET 'connect' CODE
         
         console.log("OH MY, IT'S ALIVE!!!");
     
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentL
             document.querySelector("#chat-message").focus();
             getMessages(this.value);
        }
-   });                                                               // END OF SOCKET CONNECTED CODE
+   });                                                          // END OF SOCKET CONNECTED CODE
 
     // After checking username with server
     socket.on("user checked", data => {
@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentL
         let message = data["message"];
         message = `<div class="join-div username">► ${message}</div>`;
         document.querySelector("#chat-box").innerHTML += message;
-        document.querySelector("#chat-box").scrollTo(0, 999999);
+        scrollDown();
    })
 
    // Welcome user to new room
@@ -202,10 +202,10 @@ document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentL
         let message = data["message"];
         message = `<div class="welcome-div username">◄ ${message} ►</div>`;
         document.querySelector("#chat-box").innerHTML += message;
-        document.querySelector("#chat-box").scrollTo(0, 999999);
         setTimeout(() => {
             document.querySelector(".welcome-div").style.display = "none";
         },3000);
+        scrollDown();
    })
 
    // When a user leaves a room
@@ -213,22 +213,19 @@ document.addEventListener("DOMContentLoaded", () => {   // START OF 'DOMContentL
         let message = data["message"];
         message = `<div class="leave-div username">◄ ${message}</div>`;
         document.querySelector("#chat-box").innerHTML += message;
-        document.querySelector("#chat-box").scrollTo(0, 999999);
+        scrollDown();
    })
 
    // When new message arrives
    socket.on("new message", data => {
         // Send data to help function to process
-        const content = processMessage(data);
-
-        // Scroll to bottom
-        document.querySelector("#chat-box").scrollTo(0, 999999);
+        const content = processMessage(data, scrollDown);
    })
 }); // END OF 'DOMContentLoaded' listener code
 
 
 // HELPER FUNCTIONS
-function processMessage(data) {
+function processMessage(data, callback) {
     // Process handlebars script
     const template = Handlebars.compile(document.querySelector("#message").innerHTML);
     const dateString = new Date().toDateString();
@@ -240,6 +237,8 @@ function processMessage(data) {
     
     const content = template(data);
     document.querySelector("#chat-box").innerHTML += content;
+
+    callback();
 }
 
 function getMessages(room) {
@@ -250,15 +249,13 @@ function getMessages(room) {
     // When request completes
     request.onload = () => {
 
-           const messages =  JSON.parse(request.responseText);
-           console.log(messages);
-           if (messages.length > 0) {
+       const messages =  JSON.parse(request.responseText);
+       if (messages.length > 0) {
             messages.forEach(message => {
                 // Send data to help function to process                
-                const content = processMessage(message);
+                const content = processMessage(message, scrollDown);
             })
-           }
-           document.querySelector("#chat-box").scrollTo(0, 999999);
+       }
     }
 
     // Add data to send with request
@@ -270,22 +267,28 @@ function getMessages(room) {
     return false;  
 }
 
+function scrollDown() {
+    const scrollHeight = document.querySelector("#chat-box").scrollHeight;
+    document.querySelector("#chat-box").scrollTo(0, scrollHeight);
+}
+
 function uploadFile(file, message) {
     const request = new XMLHttpRequest();
     request.open("POST", "/");
 
-        // When request completes
-        request.onload = () => {
+    // When request completes
+    request.onload = () => {
 
-            const data = JSON.parse(request.responseText);
-            // If upload succeeds:
-            if (data["success"]) {
-                message["file"] = {"url": data["url"], "filename": data["filename"], "filetype": data["filetype"]};
-                socket.emit("send message", message);
-            } else {
-                alert("Something's not right. :|");
-            }
+        const data = JSON.parse(request.responseText);
+        // If upload succeeds:
+        if (data["success"]) {
+            message["file"] = {"url": data["url"], "filename": data["filename"], "filetype": data["filetype"]};
+            socket.emit("send message", message);
+        } else {
+            alert("Something's not right. :|");
         }
+        scrolldown();
+    }
 
     // Add data to send with request
     const data = new FormData();
