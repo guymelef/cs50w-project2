@@ -287,7 +287,7 @@ function uploadFile(file, message) {
         } else {
             alert("Something's not right. :|");
         }
-        scrolldown();
+        scrollDown();
     }
 
     // Add data to send with request
