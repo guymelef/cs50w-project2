@@ -35,8 +35,8 @@
 			<form id="new-message">
 				<div id="message-box" enctype="multipart/form-data">
 					<div class="input-grid">
-						<div style="padding-left: 1px;">
-							<input id="chat-message" type="text" autocomplete="off" size="50" autofocus placeholder=">> Send a message">
+						<div>
+							<input id="chat-message" type="text" autocomplete="off" autofocus placeholder="Send a message">
 						</div>
 						<div>
 							<label for="file-upload">
@@ -46,7 +46,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="submit-box" style="background-color: gainsboro">
+				<div id="submit-box" style="background-color: gainsboro;">
 					<input id="submit-chat" type="submit" value="Chat">
 				</div>
 			</form>
@@ -56,22 +56,33 @@
 				<h3><span id="welcome">Welcome to Flack!</span></h3>
 				<p>Join a channel or create a new one.</p>
 				<strong>Current channel:</strong>
-				<select>
-					<optgroup label="Public Channels">
-						{% for channel in channels %}
-							<option value="{{ channel }}"># {{ channel }}</option>
-						{% endfor %}
-					</optgroup>
-				</select>
-				<input type="button" id="add-room" value="&#43;">
+				<div class="navigation-grid">
+					<div>
+						<select>
+							<optgroup label="Public Channels">
+								{% for channel in channels %}
+									<option value="{{ channel }}"># {{ channel }}</option>
+								{% endfor %}
+							</optgroup>
+						</select>
+					</div>
+					<div>
+						<input type="button" id="add-room" value="&#43;">
+					</div>
+				</div>
 				<br>
 				<span id="room-created"><strong><span style="color:steelblue;">▲</span> New channel successfully created!</strong></span>
 				<!-- Create a new room -->
 				<form id="create-room">
-					<p>Type a unique channel name:</p>
-					<input type="text" name="new-room" id="new-room" autofocus maxlength="16" pattern="[A-Za-z0-9-]+" title="Alphanumeric & dash accepted (max. 16)." required>
-					<input type="submit" id="submit-room" value="OK">
-					<br>
+					<span class="text">Type a unique channel name:</span>
+					<div class="navigation-grid">
+						<div>
+							<input type="text" name="new-room" id="new-room" autofocus maxlength="16" pattern="[A-Za-z0-9-]+" title="Alphanumeric & dash accepted (max. 16)." required>
+						</div>
+						<div>
+							<input type="submit" id="submit-room" value="OK">
+						</div>
+					</div>
 					<span id="room-exists">Oops, that channel already exists.</span>
 				</form>
 			</div>
@@ -114,6 +125,5 @@
 			</div>
 		</div>
 	</script>
-
 </body>
 </html>

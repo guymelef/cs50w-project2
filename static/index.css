@@ -74,9 +74,13 @@ nav > a {
 	margin-top: 40px;
 }
 
+.grid1, .grid2 {
+	height: 530px;
+}
+
 #chat-box {
 	outline: black solid 0.15rem;
-	height: 530px;
+	height: inherit;
 	width: 100%;
 	overflow-x: hidden;
 	overflow-y: auto;
@@ -135,7 +139,7 @@ i[class="far fa-file-alt"] {
     height: auto;
 }
 
-input[type="file"] {
+#file-upload {
 	display: none;
 }
 
@@ -143,7 +147,6 @@ label {
 	color: darkgray;
 	float: right;
 	margin-right: 3px;
-	background-color: transparent;
 }
 
 label:hover {
@@ -158,7 +161,11 @@ label:hover {
 
 .input-grid {
 	display: grid;
-	grid-template-columns: 90% 10%;
+	grid-template-columns: 95% 5%;
+}
+
+.input-grid>div:nth-child(1) {
+	padding-left: 2px;
 }
 
 #message-box {
@@ -168,6 +175,7 @@ label:hover {
 
 #submit-box {
 	outline: black solid 0.15rem;
+	text-align: center;
 }
 
 #submit-chat {
@@ -178,6 +186,7 @@ label:hover {
 }
 
 #chat-message {
+	width: 100%;
 	outline: none;
 	border: none;
 	font-family: 'Orbitron', sans-serif;
@@ -211,34 +220,29 @@ select, #add-room, #new-room, #submit-room, #username, #submit-id {
 
 select {
 	font-weight: bold;
-	width: 87%;
+	width: 100%;
 }
 
-p {
+p, .text {
 	font-size: 0.9em;
 	padding: 3px;
 }
 
 #navigation {
-	height: 530px;
 	width: 100%;
-	margin: 0 auto;
+	height: inherit;
 	background-color: gainsboro;
 	outline: silver solid 0.15rem;
 	padding: 10px;
 }
 
-#add-room {
+#add-room{
 	width: 30px;
 	font-weight: bold;
 }
 
-#new-room {
-	width: 84%;
-}
-
 #create-room {
-	padding: 0 0 2px 2px;
+	padding: 0 6px 2px 1px;
 	background-color: steelblue;
 }
 
@@ -248,9 +252,132 @@ p {
 	background-color: silver;
 }
 
-@media screen and (max-width: 600px) {
+#new-room {
+	width: 100%;
+}
+
+#submit-room {
+	padding: 1px 2px;
+	font-weight: bold;
+}
+
+.navigation-grid {
+	display: grid;
+	grid-template-columns: 90% 10%;
+	grid-column-gap: 2px;
+}
+
+@media screen and (max-width: 1024px) {
 	.grid-container {
-		grid-template-columns: auto;
+		grid-template-columns: 60% 31%;
 		justify-content: center;
+	}
+
+	#avatar {
+		width: 80%;
+		right: 4px;
+	}
+
+	.chat-messages {
+		grid-template-columns: 8% 92%;
+	}
+}
+
+@media screen and (max-width : 768px) {
+	.grid-container { grid-template-columns: 60% 40%; }
+	#avatar { 
+		width: 85%;
+		left:4px;
+	}
+}
+
+@media screen and (max-width : 720px) {
+	#create-room {
+		padding: 0 8px 2px 1px;
+	}
+
+	#avatar { 
+		width: 82%;
+		left:5px;
+	}
+
+	h3 {
+		margin-top: 0px;
+	}
+
+	.grid1 {
+		grid-area: first;
+		height: 550px;
+		margin-bottom: 30px;
+	}
+
+	.grid2 {
+		grid-area: second;
+		height: auto;
+	}
+
+	.grid-container {
+		display: grid;
+		margin-top: 40px;
+		height: auto;
+		grid-template-areas:
+			'second'
+			'first';
+		grid-template-columns: 95%;
+		grid-template-rows: auto auto;
+		grid-row-gap: 20px;
+	}
+
+	.chat-messages {
+		grid-template-columns: 8% 92%;
+	}
+}
+
+@media screen and (max-width : 480px) {
+	.grid1 {
+		grid-area: first;
+		height: 500px;
+	}
+
+	.grid2 {
+		grid-area: second;
+		height: auto;
+	}
+
+	.grid-container {
+		display: grid;
+		margin-top: 20px;
+		padding: 10px;
+		height: auto;
+		grid-template-areas:
+			'second'
+			'first';
+		grid-template-columns: 100%;
+		grid-template-rows: auto auto;
+		grid-row-gap: 10px;
+	}
+
+	h3 {
+		margin-top: 0px;
+	}
+}
+
+@media screen and (max-width : 420px) {
+	#submit-chat {
+		font-size: 0.6em;
+	}
+
+	#avatar {
+		width: 85%;
+	}
+}
+
+@media screen and (max-width : 320px) {
+	#submit-chat {
+		font-size: 0.45em;
+	}
+
+	#avatar {
+		width: 85%;
 	}
 }

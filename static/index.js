@@ -103,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {  // START OF 'DOMContentLo
                 document.querySelector("#new-room").focus();
             } else {
                 document.querySelector("#add-room").value = "+";
+                document.querySelector("#new-room").value = "";
                 document.querySelector("#create-room").style.display = "none";
             }
         }
