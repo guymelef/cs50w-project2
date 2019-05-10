@@ -3,7 +3,7 @@
 Web Programming with Python and JavaScript
 
 ## FLACK
-A Flask chat app written in Python and Javascript. Live at: https://flack4cs50w.herokuapp.com/
+A Flask chat app written in Python and Javascript. Live at (Google Chrome preferred): https://flack4cs50w.herokuapp.com/
 
 ### DESCRIPTION
 This web app is written in vanilla CSS and JS.
